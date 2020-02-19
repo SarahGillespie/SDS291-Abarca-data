@@ -1,7 +1,7 @@
 ---
 title: "GroupProject"
 author: "Sarah Gillespie"
-date: "2/17/2020"
+date: "2/23/2020"
 output: pdf_document
 ---
 
@@ -16,10 +16,9 @@ opts_chunk$set(
   tidy.opts=list(width.cutoff=65), # wrap text and long comments
   fig.width=7, fig.height=5           #figure size
 )
-#Requiring Stat2Data package for the data
-# If you're working locally on your computer, you will need to install some of these packages--see code below.
-#install.packages(Stat2Data) 
-require(Stat2Data)
+
+
+library(ipumsr)
 require(tidyverse)
 ```
 
@@ -30,13 +29,30 @@ require(tidyverse)
 
 # get the data in here https://cran.r-project.org/web/packages/ipumsr/vignettes/ipums.html
 
-library(ipumsr)
-
-read_ipums_micro()
-read_ipums_micro_list()
-
-ipums_view()
 ```
+
+
+```{r}
+
+thing2 <- read_ipums_ddi("usa_00003.xml")
+
+thing2_data <- read_ipums_micro(thing2, verbose = FALSE)
+
+
+#ipums_view(thing2_data)
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 # Question 2.15
 
