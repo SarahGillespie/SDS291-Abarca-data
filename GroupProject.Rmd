@@ -1,0 +1,131 @@
+---
+title: "GroupProject"
+author: "Sarah Gillespie"
+date: "2/17/2020"
+output: pdf_document
+---
+
+```{r include=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+# Some customization to format the file, bring in the data you need.  Do not alter.
+
+# knitr settings to control how R chunks work and how the pdf is compiled when knit.
+require(knitr)
+opts_chunk$set(
+  tidy=TRUE,                     # display code as typed
+  size="small",                   # slightly smaller font for code
+  tidy.opts=list(width.cutoff=65), # wrap text and long comments
+  fig.width=7, fig.height=5           #figure size
+)
+#Requiring Stat2Data package for the data
+# If you're working locally on your computer, you will need to install some of these packages--see code below.
+#install.packages(Stat2Data) 
+require(Stat2Data)
+require(tidyverse)
+```
+
+
+
+
+```{r}
+
+# get the data in here https://cran.r-project.org/web/packages/ipumsr/vignettes/ipums.html
+
+library(ipumsr)
+
+read_ipums_micro()
+read_ipums_micro_list()
+
+ipums_view()
+```
+
+# Question 2.15
+
+## 2.15A Test the hypothesis that sugar content has a linear relationship with calories (in an appropriate scale). Report the hypothesis, test statistic, and P-value, along with your conclusion.
+
+```{r}
+
+mod1 <- lm(Calories~Sugar, data=Cereal)
+
+summary(mod1)
+
+```
+
+HYPOTHSIS: I predict that there is a linear relationship between the sugar content of a cereal and calories.
+
+NULL HYPOTHESIS: There is no association between sugar content and calories. The slope of the least squares regression line is zero.
+
+The test statistic is 3.507.
+
+The P-value is 0.0013.
+
+My conclusion is that there is some association between the sugar content of a cereal and calories.
+
+## 2.15B Find and intrepret a 95% confidence interval for the slope of this regression model. Also explain what this slope coefficent means in the context of these data.
+
+```{r}
+confint(mod1)
+```
+
+There is a 95% chance that the slope of this regression model is between 1.043205 and 3.918421.
+
+
+# Question 2.18
+
+## 2.18A Is the slope of the least squares regression line for predicting Weight from Winglength significantly different from zero? Show details.
+
+```{r}
+
+
+modelBird <- lm(Weight~WingLength, data=Sparrows)
+
+summary(modelBird)
+
+```
+
+HYPOTHSIS: I predict that there is a linear relationship between the a Savannah sparrow's weight and the sparrow's winglength.
+
+NULL HYPOTHESIS: I predict that there is no association between the a Savannah sparrow's weight and the sparrow's winglength. The slope of the least squares regression line is zero.
+
+The p-value is 2.2e-16, or 1/5000000000000000. With a P-value this small, we can be more confident that the null hypothesis is false and that the slope of the least squares regression line for predicting Weight from Winglength is significantly different from zero.
+
+
+## 2.18B Construct and interpret a 95% confidence interval for the slope coefficient in this model. 
+
+```{r}
+confint(modelBird)
+```
+
+There is a 95% chance that the slope of the regression model is between 0.3986288 and 0.5361792.
+
+## 2.18C Does your confidence interval in part (b) contain zero? How is this related to part (a)?
+
+No. My confidence interval does not include zero. That means that there is a 97.5% or less chance that the slope of the least squares regression line is  below the lower bound of 0.3986288. This is related to the t-statistic in such that the t-statistic said it was incredibly unlikely that our slope of the least squares regression line was zero and this confidence interval further supports the low t-statistic's claim.
+
+<!--- Skip 2.25A --->
+
+## 2.25B What percent of the variation in weight is explained by the simple linear model with WingLength as a predictor?
+personal reminder: r tells us how correlated variables are.
+
+
+```{r}
+
+summary(modelBird)
+```
+
+
+Our Multiple R-squared is 0.6139 and our Adjusted R-squared is 0.6105. This means 61% of the variation in weight can be explained by the WingLength.
+
+
+## 2.25C Provide the ANOVA table that partitions the total variability n weight and interpret the F-test. (ANOVA is a way to do the F-test).
+
+```{r}
+anova(modelBird)
+```
+
+Our P-value is less that 0.05, it is 2.2e-16, so we know that it is very unlikely that the variability in weight is unrelated to WingLength.
+
+## 2.25D --> from Catherine Kung on Slack: "compare the square root of the F statistic to the t-value in the anova table that you did in 2.18A"
+
+<!--- Refer to 2.18A instead of 2.25A for the comparison this question asks for --->
+
+The t-value in 2.18A was 13.463. The square root of our F-statistic of 181.3 is 13.4648. Therefore, we can see that the our F-statistic is just our t-value squared.
