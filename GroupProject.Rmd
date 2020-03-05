@@ -27,8 +27,6 @@ require(tidyverse)
 ```
 
 
-
-
 ```{r}
 
 # get the data in here https://cran.r-project.org/web/packages/ipumsr/vignettes/ipums.html
@@ -39,109 +37,53 @@ require(tidyverse)
 ```{r}
 
 # Note that you can pass in the loaded DDI into the `read_ipums_micro()`
-cps_ddi <- read_ipums_ddi(ipums_example("cps_00006.xml"))
-cps_data <- read_ipums_micro(cps_ddi, verbose = FALSE)
+USA11_ddi <- read_ipums_ddi("usa_00011.xml")
+USA11_data <- read_ipums_micro(USA11_ddi, verbose = FALSE)
 
 # Currently variable description is available for year
-ipums_var_desc(cps_data$YEAR)
-#> [1] "YEAR reports the year in which the survey was conducted.  YEARP is repeated on person records."
+ipums_var_desc(USA11_data$PHONE)
 
-# But after using ifelse it is gone
-cps_data <- cps_data %>%
-  mutate(YEAR = ifelse(YEAR == 1962, 62, NA))
-ipums_var_desc(cps_data$YEAR)
+ipums_var_desc(USA11_data$AGE)
 
-```
+ipums_var_desc(USA11_data$NCHILD)
 
+ipums_var_desc(USA11_data$MULTGEN)
 
-```{r}
+ipums_var_desc(USA11_data$MULTGEND)
 
-# Note that you can pass in the loaded DDI into the `read_ipums_micro()`
-USA6_ddi <- read_ipums_ddi("usa_00006.xml")
-USA6_data <- read_ipums_micro(USA6_ddi, verbose = FALSE)
+#the below code just picks 1000 rows to analyze.
+USA11_data_SAMPLE <- sample_n(USA11_data, 1000)
 
-# Currently variable description is available for year
-ipums_var_desc(USA6_data$YEAR)
-#> [1] "YEAR reports the year in which the survey was conducted.  YEARP is repeated on person records."
+#list all the column names for USA11_data_SAMPLE
+colnames(USA11_data_SAMPLE)
 
-USA6_dataSMALL <- USA6_data %>%
-  select(GQ, FOODSTMP)
+#select only some columns to look at
+USA11_dataSMALL <- USA11_data_SAMPLE %>%
+  select(YEAR, GQ, FOODSTMP, PHONE, VEHICLES, MULTGEN, NCHILD, AGE, FERTYR, RACE, CITIZEN, SPEAKENG, UHRSWORK, LOOKING, INCTOT, FTOTINC, POVERTY, DIFFCARE, VETSTAT) %>%
+  mutate(FOODSTMPYEsorNO = (FOODSTMP - 1))
 
-```
+# We will need to severely clean this data. Many numbers in columns are mean a catagory of something else.
 
-```{r}
-
-# Note that you can pass in the loaded DDI into the `read_ipums_micro()`
-USA7_ddi <- read_ipums_ddi("usa_00007.xml")
-USA7_data <- read_ipums_micro(USA7_ddi, verbose = FALSE)
-
-# Currently variable description is available for year
-ipums_var_desc(USA7_data$AGE)
-
-ipums_var_desc(USA7_data$PERWT)
-
-
-USA7_dataSMALL <- USA7_data %>%
-  select(ACREHOUS, AGE, AVAILBLE, AGE_HEAD)
-
-```
-
-```{r}
-#USA7_PLOT <- ggplot(USA7_dataSMALL, aes(x=AGE, y=AGE_HEAD)) + 
-#  geom_point()
-
-#USA7_PLOT
-
-```
-
-```{r}
-
-# Note that you can pass in the loaded DDI into the `read_ipums_micro()`
-USA10_ddi <- read_ipums_ddi("usa_00010.xml")
-USA10_data <- read_ipums_micro(USA10_ddi, verbose = FALSE)
-
-# Currently variable description is available for year
-ipums_var_desc(USA10_data$COSTFUEL)
-
-ipums_var_desc(USA10_data$VALUEH)
-
-
-USA10_dataSMALL <- USA10_data %>%
-  select(GQ, MORTGAGE, COSTELEC, COSTGAS, COSTWATR, COSTFUEL, FOODSTMP, VALUEH, KITCHEN)
-
-# QUESTION: CAN COST OF WATER PREDICT THE COST OF GAS?
-
-USA10_dataUTILITIES <- USA10_dataSMALL %>%
-  select(COSTGAS, COSTELEC, COSTWATR, COSTFUEL) %>%
-  drop_na(COSTGAS, COSTELEC, COSTWATR, COSTFUEL) %>%
-  filter(COSTGAS < 9000) %>%
-  filter(COSTWATR < 9000) %>%
-  filter(COSTELEC < 9000) %>%
-  filter(COSTFUEL < 9000)
-
-# seems to get rid of codes that actually just say whether ga/fent/electricity is included in your home bill
-
-#head(USA10_dataUTILITIES, 8)
-#tail(USA10_dataUTILITIES, 12)
-#dim(USA10_dataUTILITIES)
-
-USA10_dataUTILITIES_SAMPLE <- sample_n(USA10_dataUTILITIES, 1000)
-  
-
-
-plot <- ggplot(USA10_dataUTILITIES_SAMPLE, aes(x=COSTWATR, y=COSTGAS)) + 
+plot <- ggplot(USA11_dataSMALL, aes(x=AGE, y=NCHILD)) + 
   geom_point()
 
 plot
 
-model_COSTGAS<-lm(COSTGAS~COSTWATR, data=USA10_dataUTILITIES_SAMPLE)
-summary(model_COSTGAS)
+mod1<-lm(AGE~NCHILD, data=USA11_dataSMALL)
+summary(mod1)
 
-# so we can conclude "yes": every doller you spend on water means you will also spend about $0.68 more on gas.
+# this model says that with each additional child in your household, your age is predicted to increase by 1.68 years. So predicted age = 38.7707 + 1.6801*(the number of children in your household)
+# *numbers may vary based on which 1000 random samples were chosen.
 
 
-m1<-lm(COSTGAS ~ COSTWATR + COSTELEC , data = USA10_dataUTILITIES_SAMPLE)
+m1<-lm(FTOTINC ~ FTOTINC + NCHILD + FERTYR, data = USA11_dataSMALL)
 summary(m1)
+
+# This model is definitely weird and the intercept must strongly depend on the sampled people and the 9999999 numbers that seem to be used as filler sometimes.
+
+
+m2<-lm(FTOTINC ~ NCHILD + FOODSTMPYEsorNO, data = USA11_dataSMALL)
+summary(m2)
 
 
 ```
